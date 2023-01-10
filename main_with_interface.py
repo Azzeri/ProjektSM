@@ -41,57 +41,6 @@ def chooseRecordingDevice():
     return list_of_devices
 
 
-""" def record_voice(mode):
-    if(mode == "sample"): 
-        modelName = (input("Nazwa użytkownika:"))
-    
-    pyAudio = pyaudio.PyAudio()
-    recordingDevice = 1#chooseRecordingDevice()
-    for count in range(NO_TEST_SAMPLES):
-        stream = pyAudio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=RATE,
-            input=True,
-            input_device_index=recordingDevice,
-            frames_per_buffer=CHUNK
-        )
-
-        print('Nagrywam...')
-        frames = []
-        for i in range(0, int(RATE / CHUNK * DURATION_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
-        print("Koniec nagrywania...")
-        stream.stop_stream()
-        stream.close()
-        pyAudio.terminate()
-
-        if(mode == "sample"):
-            OUTPUT_FILENAME=modelName+"-sample"+str(count)+".wav"
-            WAVE_OUTPUT_FILENAME=os.path.join("training_set",OUTPUT_FILENAME)
-            trainedfilelist = open("training_set_addition.txt", 'a')
-            trainedfilelist.write(OUTPUT_FILENAME+"\n")
-            waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-            waveFile.setnchannels(CHANNELS)
-            waveFile.setsampwidth(pyAudio.get_sample_size(FORMAT))
-            waveFile.setframerate(RATE)
-            waveFile.writeframes(b''.join(frames))
-            waveFile.close()
-
-        else:
-            OUTPUT_FILENAME="sample.wav"
-            WAVE_OUTPUT_FILENAME=os.path.join("testing_set",OUTPUT_FILENAME)
-            trainedfilelist = open("testing_set_addition.txt", 'a')
-            trainedfilelist.write(OUTPUT_FILENAME+"\n")
-            waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-            waveFile.setnchannels(CHANNELS)
-            waveFile.setsampwidth(pyAudio.get_sample_size(FORMAT))
-            waveFile.setframerate(RATE)
-            waveFile.writeframes(b''.join(frames))
-            waveFile.close() """
-
-
 def record_sample():
     pyAudio = pyaudio.PyAudio()
 
@@ -139,26 +88,6 @@ def record_sample():
     label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
     ws.update()
 
-
-# def menu():
-"""     while True:
-        action = (int(input(
-            "\nCo chcesz zrobić?\n 1.Nagraj próbki treningowe \n 2.Trening \n 3.Nagraj próbkę testową \n 4.Identyfikuj\n"
-        )))
-
-        if (action == 1):
-            record_voice("sample")
-        elif (action == 2):
-            train_model()
-        elif (action == 3):
-            record_voice("identify")
-        elif (action == 4):
-            test_model()
-        if (action > 4):
-            exit() """
-
-
-# menu()
 
 def calculate_delta(array):
 
