@@ -16,7 +16,7 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
 CHUNK = 512
-DURATION_SECONDS = 5
+DURATION_SECONDS = 3
 NO_TEST_SAMPLES = 2
 PASSWORDS = list(open('passwords.txt'))
 LOCALPATH = "C:\\Users\\artes\\OneDrive\\Semestr 9\\SM\\Projekt\\"
@@ -69,7 +69,7 @@ class Identification:
             self.ws_main,
             text='START',
             bd='5',
-            command=self.record_sample
+            command=lambda: self.record_test_sample(label_password)
         )
 
         start_btn.place(relx=0.5, rely=0.7, anchor=CENTER)
@@ -250,12 +250,46 @@ class Identification:
                 count = 0
             count = count + 1
 
+    def record_test_sample(self):
+        stream = self.pyAudio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            input_device_index=self.recording_device.get(),
+            frames_per_buffer=CHUNK
+        )
+
+        label_record = Label(self.ws_main, text="Nagrywam...", font='Arial 15')
+        label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
+        self.ws_main.update()
+
+        frames = []
+        for i in range(0, int(RATE / CHUNK * DURATION_SECONDS)):
+            data = stream.read(CHUNK)
+            frames.append(data)
+
+        label_record.place_forget()
+        label_record = Label(
+            self.ws_main, text="Koniec nagrania...", font='Arial 15')
+        label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
+        stream.stop_stream()
+        stream.close()
+        self.pyAudio.terminate()
+
+        OUTPUT_FILENAME = "sample.wav"
+        WAVE_OUTPUT_FILENAME = os.path.join("testing_set", OUTPUT_FILENAME)
+        trainedfilelist = open("testing_set_addition.txt", 'a')
+        trainedfilelist.write(OUTPUT_FILENAME+"\n")
+        waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        waveFile.setnchannels(CHANNELS)
+        waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
+        waveFile.setframerate(RATE)
+        waveFile.writeframes(b''.join(frames))
+        waveFile.close()
+
     def nav_identify_samples(self):
         print('here will identify samples')
-        return
-
-    def record_sample(self):
-        print('here will record testing sample')
         return
 
 
