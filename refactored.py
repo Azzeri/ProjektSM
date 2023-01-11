@@ -3,7 +3,6 @@ import wave
 import time
 import pickle
 import pyaudio
-import warnings
 import random
 import numpy as np
 from sklearn import preprocessing
@@ -12,8 +11,6 @@ import python_speech_features as mfcc
 from sklearn.mixture import GaussianMixture
 import time
 from tkinter import *
-from tkinter import messagebox
-from itertools import count
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
