@@ -20,6 +20,7 @@ DURATION_SECONDS = 3
 NO_TEST_SAMPLES = 2
 PASSWORDS = list(open('passwords.txt'))
 LOCALPATH = "C:\\Users\\artes\\OneDrive\\Semestr 9\\SM\\Projekt\\"
+TRAINING_MODELS = os.listdir(LOCALPATH + "trained_models\\")
 SAMPLE_NUMBER_FOR_ONE_MODEL = 0
 
 
@@ -44,7 +45,7 @@ class Identification:
         frame.pack()
         mainmenu = Menu(frame)
         mainmenu.add_command(label="Dodaj dane", command=self.nav_add_model)
-        mainmenu.add_command(label="Trenuj model",
+        mainmenu.add_command(label="Trenuj modele",
                              command=self.nav_train_models)
         mainmenu.add_command(
             label="Identifikuj nagrane próbki", command=self.nav_identify_samples)
@@ -217,6 +218,37 @@ class Identification:
         start_btn.place(relx=0.5, rely=0.7, anchor=CENTER)
 
     def nav_train_models(self):
+        ws_train_models = self.initialize_window("Trening")
+        left_frame = Frame(ws_train_models)
+        left_frame.grid(row=0, column=0)
+        right_frame = Frame(ws_train_models)
+        right_frame.grid(row=0, column=1)
+
+        label_title = Label(
+            ws_train_models, text="Trening", font='Arial 14'
+        )
+        label_title.place(relx=0.5, rely=0.10, anchor=CENTER)
+
+        models_list = Listbox(left_frame)
+        for index, file in enumerate(TRAINING_MODELS):
+            models_list.insert(index, file.replace('.gmm', ''))
+        models_list.pack()
+
+        start_btn = Button(
+            ws_train_models,
+            text='START',
+            bd='5',
+            command=lambda: self.train_models(ws_train_models)
+        )
+
+        start_btn.place(relx=0.5, rely=0.7, anchor=CENTER)
+
+    def train_models(self, ws_train_models):
+        label_record = Label(
+            ws_train_models, text="Nagrywam...", font='Arial 15')
+        label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
+        ws_train_models.update()
+
         source = LOCALPATH + "training_set\\"
         dest = LOCALPATH + "trained_models\\"
         train_file = LOCALPATH + "training_set_addition.txt"
@@ -249,6 +281,8 @@ class Identification:
                 features = np.asarray(())
                 count = 0
             count = count + 1
+
+        label_record.place_forget()
 
     def record_test_sample(self):
         stream = self.pyAudio.open(
