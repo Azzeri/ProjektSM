@@ -22,7 +22,6 @@ NO_TEST_SAMPLES = 2
 PASSWORDS = list(open('passwords.txt'))
 LOCALPATH = "C:\\Users\\artes\\OneDrive\\Semestr 9\\SM\\Projekt\\"
 TRAINING_MODELS = os.listdir(LOCALPATH + "trained_models\\")
-SAMPLE_NUMBER_FOR_ONE_MODEL = 0
 
 
 class Identification:
@@ -132,7 +131,9 @@ class Identification:
         return combined
 
     def add_model(self, ws_add_model, modelName, label_password, label_record):
-        global SAMPLE_NUMBER_FOR_ONE_MODEL
+        training_set = str(os.listdir(LOCALPATH + "training_set\\"))
+        next_sample = (len([i for i in range(len(training_set))
+                       if training_set.startswith(modelName, i)]))
 
         stream = self.pyAudio.open(
             format=FORMAT,
@@ -145,7 +146,7 @@ class Identification:
 
         label_password.place_forget()
         label_password = Label(
-            ws_add_model, text=PASSWORDS[SAMPLE_NUMBER_FOR_ONE_MODEL], font='Arial 17 bold')
+            ws_add_model, text=PASSWORDS[next_sample], font='Arial 17 bold')
         label_password.place(relx=0.5, rely=0.6, anchor=CENTER)
 
         label_record = Label(ws_add_model, text="Nagrywam...", font='Arial 15')
@@ -166,10 +167,10 @@ class Identification:
         self.pyAudio.terminate()
 
         OUTPUT_FILENAME = modelName + "-sample" + \
-            str(SAMPLE_NUMBER_FOR_ONE_MODEL) + ".wav"
+            str(next_sample) + ".wav"
         WAVE_OUTPUT_FILENAME = os.path.join("training_set", OUTPUT_FILENAME)
         trainedfilelist = open("training_set_addition.txt", 'a')
-        trainedfilelist.write(OUTPUT_FILENAME+"\n")
+        trainedfilelist.write("\n" + OUTPUT_FILENAME)
         waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
         waveFile.setnchannels(CHANNELS)
         waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
@@ -180,7 +181,6 @@ class Identification:
         time.sleep(1)
         label_record.place_forget()
         label_password.place_forget()
-        SAMPLE_NUMBER_FOR_ONE_MODEL += 1
 
     def nav_add_model(self):
         ws_add_model = self.initialize_window("Nowy model")
@@ -308,8 +308,6 @@ class Identification:
 
         OUTPUT_FILENAME = "sample.wav"
         WAVE_OUTPUT_FILENAME = os.path.join("testing_set", OUTPUT_FILENAME)
-        # trainedfilelist = open("testing_set_addition.txt", 'a')
-        # trainedfilelist.write(OUTPUT_FILENAME+"\n")
         waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
         waveFile.setnchannels(CHANNELS)
         waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
