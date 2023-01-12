@@ -11,12 +11,13 @@ import python_speech_features as mfcc
 from sklearn.mixture import GaussianMixture
 import time
 from tkinter import *
+from tkinter import messagebox
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
 CHUNK = 512
-DURATION_SECONDS = 3
+SAMPLE_DURATION_SECONDS = 5
 NO_TEST_SAMPLES = 2
 PASSWORDS = list(open('passwords.txt'))
 LOCALPATH = "C:\\Users\\artes\\OneDrive\\Semestr 9\\SM\\Projekt\\"
@@ -47,8 +48,6 @@ class Identification:
         mainmenu.add_command(label="Dodaj dane", command=self.nav_add_model)
         mainmenu.add_command(label="Trenuj modele",
                              command=self.nav_train_models)
-        mainmenu.add_command(
-            label="Identifikuj nagrane próbki", command=self.nav_identify_samples)
         mainmenu.add_command(label="Exit", command=self.ws_main.destroy)
         self.ws_main.config(menu=mainmenu)
 
@@ -70,7 +69,7 @@ class Identification:
             self.ws_main,
             text='START',
             bd='5',
-            command=lambda: self.record_test_sample(label_password)
+            command=lambda: self.record_test_sample()
         )
 
         start_btn.place(relx=0.5, rely=0.7, anchor=CENTER)
@@ -154,7 +153,7 @@ class Identification:
         ws_add_model.update()
 
         frames = []
-        for i in range(0, int(RATE / CHUNK * DURATION_SECONDS)):
+        for i in range(0, int(RATE / CHUNK * SAMPLE_DURATION_SECONDS)):
             data = stream.read(CHUNK)
             frames.append(data)
 
@@ -299,22 +298,18 @@ class Identification:
         self.ws_main.update()
 
         frames = []
-        for i in range(0, int(RATE / CHUNK * DURATION_SECONDS)):
+        for i in range(0, int(RATE / CHUNK * SAMPLE_DURATION_SECONDS)):
             data = stream.read(CHUNK)
             frames.append(data)
 
-        label_record.place_forget()
-        label_record = Label(
-            self.ws_main, text="Koniec nagrania...", font='Arial 15')
-        label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
         stream.stop_stream()
         stream.close()
         self.pyAudio.terminate()
 
         OUTPUT_FILENAME = "sample.wav"
         WAVE_OUTPUT_FILENAME = os.path.join("testing_set", OUTPUT_FILENAME)
-        trainedfilelist = open("testing_set_addition.txt", 'a')
-        trainedfilelist.write(OUTPUT_FILENAME+"\n")
+        # trainedfilelist = open("testing_set_addition.txt", 'a')
+        # trainedfilelist.write(OUTPUT_FILENAME+"\n")
         waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
         waveFile.setnchannels(CHANNELS)
         waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
@@ -322,7 +317,11 @@ class Identification:
         waveFile.writeframes(b''.join(frames))
         waveFile.close()
 
-    def nav_identify_samples(self):
+        self.identify_samples()
+
+        label_record.place_forget()
+
+    def identify_samples(self):
         source = LOCALPATH + "testing_set\\"
         modelpath = LOCALPATH + "trained_models\\"
         test_file = LOCALPATH + "testing_set_addition.txt"
@@ -353,6 +352,8 @@ class Identification:
 
             winner = np.argmax(log_likelihood)
             print("\tdetected as - ", speakers[winner])
+            messagebox.showinfo(
+                "showinfo", f'Zidentyfikowano jako: {speakers[winner]}')
             time.sleep(1.0)
 
 
