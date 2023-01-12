@@ -66,3 +66,10 @@ Natalia-sample6.wav
 Natalia-sample7.wav
 Natalia-sample8.wav
 Natalia-sample9.wav
+maniek-sample0.wav
+maniek-sample1.wav
+maniek-sample2.wav
+maniek-sample3.wav
+maniek-sample4.wav
+maniek-sample5.wav
+maniek-sample6.wav
