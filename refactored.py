@@ -96,9 +96,7 @@ class Identification:
 
     def calculate_delta(self, array):
         rows, cols = array.shape
-        print(rows)
-        print(cols)
-        deltas = np.zeros((rows, 20))
+        deltas = np.zeros((rows, 26))
         N = 2
         for i in range(rows):
             index = []
@@ -120,9 +118,8 @@ class Identification:
 
     def extract_features(self, audio, rate):
         mfcc_feature = mfcc.mfcc(audio, rate, 0.025, 0.01,
-                                 20, nfft=1200, appendEnergy=True)
+                                 39, nfft=512, appendEnergy=True)
         mfcc_feature = preprocessing.scale(mfcc_feature)
-        print(mfcc_feature)
         delta = self.calculate_delta(mfcc_feature)
         combined = np.hstack((mfcc_feature, delta))
         return combined
@@ -254,10 +251,8 @@ class Identification:
 
         for path in file_paths:
             path = path.strip()
-            print(path)
 
             rate, audio = read(training_files_path + path)
-            print(rate)
             vector = self.extract_features(audio, rate)
 
             if features.size == 0:
@@ -272,8 +267,6 @@ class Identification:
 
                 picklefile = path.split("-")[0]+".gmm"
                 pickle.dump(gmm, open(trained_models_path + picklefile, 'wb'))
-                print('+ modeling completed for speaker:', picklefile,
-                      " with data point = ", features.shape)
                 features = np.asarray(())
                 count = 0
             count = count + 1
@@ -303,8 +296,7 @@ class Identification:
         stream.close()
         self.pyAudio.terminate()
 
-        WAVE_OUTPUT_FILENAME = os.path.join("testing_set", "sample.wav")
-        audio_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        audio_file = wave.open("sample.wav", 'wb')
         audio_file.setnchannels(CHANNELS)
         audio_file.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
         audio_file.setframerate(RATE)
@@ -316,39 +308,31 @@ class Identification:
         label_record.place_forget()
 
     def identify_samples(self):
-        source = LOCALPATH + "testing_set\\"
         trained_models_path = LOCALPATH + "trained_models\\"
-        test_file = LOCALPATH + "testing_set_addition.txt"
-        file_paths = open(test_file, 'r')
+        sample_file = "sample.wav"
 
-        gmm_files = [os.path.join(trained_models_path, fname) for fname in
-                     os.listdir(trained_models_path) if fname.endswith('.gmm')]
+        gmm_files = [os.path.join(trained_models_path, file_name) for file_name in
+                     os.listdir(trained_models_path) if file_name.endswith('.gmm')]
 
-        # Load the Gaussian gender Models
-        models = [pickle.load(open(fname, 'rb')) for fname in gmm_files]
-        speakers = [fname.split("\\")[-1].split(".gmm")[0] for fname
+        models = [pickle.load(open(file_name, 'rb'))
+                  for file_name in gmm_files]
+        speakers = [file_name.split("\\")[-1].split(".gmm")[0] for file_name
                     in gmm_files]
 
-        # Read the test directory and get the list of test audio files
-        for path in file_paths:
+        rate, audio = read(sample_file)
+        vector = self.extract_features(audio, rate)
 
-            path = path.strip()
-            print(path)
-            sr, audio = read(source + path)
-            vector = self.extract_features(audio, sr)
+        log_likelihood = np.zeros(len(models))
 
-            log_likelihood = np.zeros(len(models))
+        for i in range(len(models)):
+            gmm = models[i]
+            scores = np.array(gmm.score(vector))
+            log_likelihood[i] = scores.sum()
 
-            for i in range(len(models)):
-                gmm = models[i]  # checking with each model one by one
-                scores = np.array(gmm.score(vector))
-                log_likelihood[i] = scores.sum()
-
-            winner = np.argmax(log_likelihood)
-            print("\tdetected as - ", speakers[winner])
-            messagebox.showinfo(
-                "showinfo", f'Zidentyfikowano jako: {speakers[winner]}')
-            time.sleep(1.0)
+        identification_result = np.argmax(log_likelihood)
+        messagebox.showinfo(
+            "showinfo", f'Zidentyfikowano jako: {speakers[identification_result]}')
+        time.sleep(1.0)
 
 
 Identification()
