@@ -76,9 +76,6 @@ class Identification:
     def initialize_recording_devices(self):
         recordingDevicesList = self.get_recording_devices()
 
-        # Set recording device manually
-        # self.recording_device.set(1)
-
         for i in range(len(recordingDevicesList)):
             Radiobutton(self.ws_main,
                         text=recordingDevicesList[i],
@@ -166,17 +163,17 @@ class Identification:
         stream.close()
         self.pyAudio.terminate()
 
-        OUTPUT_FILENAME = modelName + "-sample" + \
+        AUDIO_FILE_NAME = modelName + "-sample" + \
             str(next_sample) + ".wav"
-        WAVE_OUTPUT_FILENAME = os.path.join("training_set", OUTPUT_FILENAME)
-        trainedfilelist = open("training_set_addition.txt", 'a')
-        trainedfilelist.write("\n" + OUTPUT_FILENAME)
-        waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-        waveFile.setnchannels(CHANNELS)
-        waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
-        waveFile.setframerate(RATE)
-        waveFile.writeframes(b''.join(frames))
-        waveFile.close()
+        WAVE_OUTPUT_FILENAME = os.path.join("training_set", AUDIO_FILE_NAME)
+        training_set_file = open("training_set_addition.txt", 'a')
+        training_set_file.write("\n" + AUDIO_FILE_NAME)
+        audio_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        audio_file.setnchannels(CHANNELS)
+        audio_file.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
+        audio_file.setframerate(RATE)
+        audio_file.writeframes(b''.join(frames))
+        audio_file.close()
 
         time.sleep(1)
         label_record.place_forget()
@@ -248,19 +245,20 @@ class Identification:
         label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
         ws_train_models.update()
 
-        source = LOCALPATH + "training_set\\"
-        dest = LOCALPATH + "trained_models\\"
-        train_file = LOCALPATH + "training_set_addition.txt"
-        file_paths = open(train_file, 'r')
+        training_files_path = LOCALPATH + "training_set\\"
+        trained_models_path = LOCALPATH + "trained_models\\"
+        training_set_file = LOCALPATH + "training_set_addition.txt"
+        file_paths = open(training_set_file, 'r')
         count = 1
         features = np.asarray(())
+
         for path in file_paths:
             path = path.strip()
             print(path)
 
-            sr, audio = read(source + path)
-            print(sr)
-            vector = self.extract_features(audio, sr)
+            rate, audio = read(training_files_path + path)
+            print(rate)
+            vector = self.extract_features(audio, rate)
 
             if features.size == 0:
                 features = vector
@@ -272,9 +270,8 @@ class Identification:
                     n_components=6, max_iter=200, covariance_type='diag', n_init=3)
                 gmm.fit(features)
 
-                # dumping the trained gaussian model
                 picklefile = path.split("-")[0]+".gmm"
-                pickle.dump(gmm, open(dest + picklefile, 'wb'))
+                pickle.dump(gmm, open(trained_models_path + picklefile, 'wb'))
                 print('+ modeling completed for speaker:', picklefile,
                       " with data point = ", features.shape)
                 features = np.asarray(())
@@ -306,14 +303,13 @@ class Identification:
         stream.close()
         self.pyAudio.terminate()
 
-        OUTPUT_FILENAME = "sample.wav"
-        WAVE_OUTPUT_FILENAME = os.path.join("testing_set", OUTPUT_FILENAME)
-        waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-        waveFile.setnchannels(CHANNELS)
-        waveFile.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
-        waveFile.setframerate(RATE)
-        waveFile.writeframes(b''.join(frames))
-        waveFile.close()
+        WAVE_OUTPUT_FILENAME = os.path.join("testing_set", "sample.wav")
+        audio_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        audio_file.setnchannels(CHANNELS)
+        audio_file.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
+        audio_file.setframerate(RATE)
+        audio_file.writeframes(b''.join(frames))
+        audio_file.close()
 
         self.identify_samples()
 
@@ -321,12 +317,12 @@ class Identification:
 
     def identify_samples(self):
         source = LOCALPATH + "testing_set\\"
-        modelpath = LOCALPATH + "trained_models\\"
+        trained_models_path = LOCALPATH + "trained_models\\"
         test_file = LOCALPATH + "testing_set_addition.txt"
         file_paths = open(test_file, 'r')
 
-        gmm_files = [os.path.join(modelpath, fname) for fname in
-                     os.listdir(modelpath) if fname.endswith('.gmm')]
+        gmm_files = [os.path.join(trained_models_path, fname) for fname in
+                     os.listdir(trained_models_path) if fname.endswith('.gmm')]
 
         # Load the Gaussian gender Models
         models = [pickle.load(open(fname, 'rb')) for fname in gmm_files]
