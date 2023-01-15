@@ -22,6 +22,7 @@ NO_TEST_SAMPLES = 2
 PASSWORDS = list(open('passwords.txt'))
 LOCALPATH = "C:\\Users\\artes\\OneDrive\\Semestr 9\\SM\\Projekt\\"
 TRAINING_MODELS = os.listdir(LOCALPATH + "trained_models\\")
+NO_SAMPLES_FOR_ONE_MODEL = 9
 
 
 class Identification:
@@ -118,7 +119,7 @@ class Identification:
 
     def extract_features(self, audio, rate):
         mfcc_feature = mfcc.mfcc(audio, rate, 0.025, 0.01,
-                                 39, nfft=512, appendEnergy=True)
+                                 39, nfft=1200, appendEnergy=True)
         mfcc_feature = preprocessing.scale(mfcc_feature)
         delta = self.calculate_delta(mfcc_feature)
         combined = np.hstack((mfcc_feature, delta))
@@ -162,10 +163,10 @@ class Identification:
 
         AUDIO_FILE_NAME = modelName + "-sample" + \
             str(next_sample) + ".wav"
-        WAVE_OUTPUT_FILENAME = os.path.join("training_set", AUDIO_FILE_NAME)
+        WAVE_AUDIO_FILENAME = os.path.join("training_set", AUDIO_FILE_NAME)
         training_set_file = open("training_set_addition.txt", 'a')
         training_set_file.write("\n" + AUDIO_FILE_NAME)
-        audio_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        audio_file = wave.open(WAVE_AUDIO_FILENAME, 'wb')
         audio_file.setnchannels(CHANNELS)
         audio_file.setsampwidth(self.pyAudio.get_sample_size(FORMAT))
         audio_file.setframerate(RATE)
@@ -238,7 +239,7 @@ class Identification:
 
     def train_models(self, ws_train_models):
         label_record = Label(
-            ws_train_models, text="Nagrywam...", font='Arial 15')
+            ws_train_models, text="Trenuję...", font='Arial 15')
         label_record.place(relx=0.5, rely=0.25, anchor=CENTER)
         ws_train_models.update()
 
@@ -253,14 +254,16 @@ class Identification:
             path = path.strip()
 
             rate, audio = read(training_files_path + path)
-            vector = self.extract_features(audio, rate)
+            vector = self.extract_features(
+                audio, rate)  # extract z jednego pliku
 
             if features.size == 0:
                 features = vector
             else:
+                # stack ekstraktrowanego pliku do tablicy
                 features = np.vstack((features, vector))
 
-            if count == 5:
+            if count == NO_SAMPLES_FOR_ONE_MODEL:  # wszystkie pliki dla osoby wyekstraktowane - stworz model
                 gmm = GaussianMixture(
                     n_components=6, max_iter=200, covariance_type='diag', n_init=3)
                 gmm.fit(features)
